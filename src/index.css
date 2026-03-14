@@ -961,6 +961,22 @@ button {
   }
 }
 
+/* ===== Copy Summary ===== */
+.copy-summary-btn {
+  display: block;
+  margin: 4px auto 0;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 8px 16px;
+}
+
+.copy-summary-btn:active {
+  color: var(--color-accent);
+}
+
 /* ===== Utility ===== */
 .text-muted {
   color: var(--color-text-muted);

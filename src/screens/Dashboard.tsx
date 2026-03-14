@@ -12,6 +12,8 @@ import { TargetsReminder } from '../components/TargetsReminder';
 import { CheckpointBanner } from '../components/CheckpointBanner';
 import { CycleCalendar } from '../components/CycleCalendar';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { toISODate } from '../utils/averages';
 
 export function Dashboard() {
   const {
@@ -46,6 +48,7 @@ export function Dashboard() {
   );
 
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
 
   const trendArrow =
     trend === 'up' ? '↑' : trend === 'down' ? '↓' : trend === 'flat' ? '→' : '';
@@ -58,6 +61,62 @@ export function Dashboard() {
     d.setDate(d.getDate() + 11);
     return d.toISOString().split('T')[0];
   })();
+
+  function buildSummary(): string {
+    const today = toISODate(new Date());
+    const parts: string[] = [];
+
+    // Date or Day N
+    if (config) {
+      const start = new Date(config.startDate + 'T00:00:00');
+      const now = new Date(today + 'T00:00:00');
+      const dayNum = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      parts.push(`Day ${dayNum}`);
+    } else {
+      const d = new Date(today + 'T00:00:00');
+      parts.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    }
+
+    // Today's weight
+    if (todayEntry) {
+      parts.push(`${todayEntry.weight.toFixed(1)} lbs`);
+    } else {
+      parts.push('no weigh-in');
+    }
+
+    // Rolling average + trend
+    if (rollingAverage !== null) {
+      parts.push(`7-day avg: ${rollingAverage.toFixed(1)} ${trendArrow}`.trim());
+    }
+
+    // Post-period average
+    if (latestPostPeriod) {
+      let ppStr = `Post-period: ${latestPostPeriod.average.toFixed(1)}`;
+      if (postPeriodDelta !== null) {
+        const sign = postPeriodDelta <= 0 ? '' : '+';
+        ppStr += ` (${sign}${postPeriodDelta.toFixed(1)})`;
+      }
+      parts.push(ppStr);
+    } else if (config) {
+      parts.push('Post-period: awaiting cycle');
+    }
+
+    // Phase info
+    if (config) {
+      let phaseStr = `Phase ${config.currentPhase}`;
+      if (currentWeek !== null) {
+        phaseStr += ` Week ${currentWeek} of ${totalWeeksInPhase}`;
+      }
+      if (daysToCheckpoint !== null && daysToCheckpoint > 0) {
+        phaseStr += ` · Checkpoint in ${daysToCheckpoint} days`;
+      }
+      parts.push(phaseStr);
+    } else {
+      parts.push('Plan not started');
+    }
+
+    return parts.join(' | ');
+  }
 
   return (
     <div className="screen dashboard">
@@ -185,6 +244,20 @@ export function Dashboard() {
         <div className="card-label">Cycle &amp; Weight</div>
         <CycleCalendar weighIns={weighIns} cycleMarkers={cycleMarkers} />
       </div>
+
+      {/* Copy Summary */}
+      <button
+        className="copy-summary-btn"
+        onClick={() => {
+          const summary = buildSummary();
+          navigator.clipboard.writeText(summary).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          });
+        }}
+      >
+        {copied ? 'Copied!' : 'Copy summary'}
+      </button>
     </div>
   );
 }
