@@ -319,6 +319,13 @@ button {
   margin-bottom: 8px;
 }
 
+.cycle-window-detail {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
 .cycle-resume {
   color: var(--color-accent);
   font-weight: 600;

@@ -50,7 +50,7 @@ function getCyclePhase(dateStr: string, cycleMarkers: CycleMarker[]): CyclePhase
 
 const PHASE_LABELS: Record<string, string> = {
   'period': 'Period',
-  'exclusion-pre': 'Pre-period',
+  'exclusion-pre': 'Retention window',
   'post-period': 'Post-period window',
 };
 
@@ -149,7 +149,7 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
         </div>
         <div className="cal-legend-item">
           <span className="cal-legend-dot cal-legend-dot--exclusion-pre" />
-          <span>Pre-period</span>
+          <span>Retention</span>
         </div>
         <div className="cal-legend-item">
           <span className="cal-legend-dot cal-legend-dot--post-period" />

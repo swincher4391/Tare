@@ -24,8 +24,12 @@ export function CycleWindowMessage({
   return (
     <div className="cycle-window-message">
       <p className="cycle-window-text">
-        Cycle window — no weigh-in today.
-        <br />
+        <strong>Retention window</strong>
+      </p>
+      <p className="cycle-window-detail">
+        Weight typically shifts +2–4 lbs from water retention around menstruation. Excluded from your rolling average.
+      </p>
+      <p className="cycle-window-text">
         <span className="cycle-resume">Resumes {formatted}</span>
       </p>
       {!showForm ? (
