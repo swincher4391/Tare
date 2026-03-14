@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { usePlanConfig } from '../hooks/usePlanConfig';
 import { useWithingsSync } from '../hooks/useWithingsSync';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -14,6 +15,10 @@ export function Settings() {
   const withingsStatus = searchParams.get('withings');
   const withingsError = searchParams.get('withings_error');
 
+  const latestWeighIn = useLiveQuery(() =>
+    db.weighIns.orderBy('date').last()
+  );
+
   const [startDate, setStartDate] = useState('');
   const [startWeight, setStartWeight] = useState('');
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
@@ -25,6 +30,13 @@ export function Settings() {
       setPhase(config.currentPhase);
     }
   }, [config]);
+
+  // Pre-fill starting weight from scale data when no plan exists yet
+  useEffect(() => {
+    if (!config && latestWeighIn && !startWeight) {
+      setStartWeight(latestWeighIn.weight.toString());
+    }
+  }, [config, latestWeighIn, startWeight]);
 
   async function handleSaveConfig() {
     const w = parseFloat(startWeight);
@@ -147,6 +159,11 @@ export function Settings() {
             onChange={(e) => setStartWeight(e.target.value)}
             className="weight-input weight-input--small"
           />
+          {!config && latestWeighIn && startWeight === latestWeighIn.weight.toString() && (
+            <p className="text-muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+              From your latest weigh-in ({latestWeighIn.date})
+            </p>
+          )}
         </div>
         <button className="btn btn-primary" onClick={handleSaveConfig}>
           {config ? 'Update' : 'Initialize Plan'}
