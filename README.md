@@ -1,73 +1,82 @@
-# React + TypeScript + Vite
+# Tare
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Find the true weight.**
 
-Currently, two official plugins are available:
+Tare (as in taring a scale — zeroing out the bowl to measure what's actually inside) is a lightweight, single-purpose PWA for tracking daily weight, computing 7-day rolling averages, respecting menstrual cycle windows, and surfacing checkpoint verdicts from the Evidence-Based Weight Loss Plan.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Where Mise strips the noise from recipes to give you just the recipe, Tare strips the noise from the scale to give you just the trend.
 
-## React Compiler
+## What it does
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Daily weigh-in** — one-tap entry, under 10 seconds
+- **7-day rolling average** — most recent 7 valid entries (not calendar days), minimum 4 required
+- **Cycle window exclusion** — days -5 through +3 of period start, with optional "log anyway"
+- **Post-period comparison** — the hero metric: lowest 7-day average in the week after each period
+- **Checkpoint verdicts** — automated Phase 1 (week 4) and Phase 2 (week 8) evaluations using exact plan language
+- **Phase management** — automatic transitions with manual override
 
-## Expanding the ESLint configuration
+## What it is NOT
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- NOT a food tracker or calorie counter
+- NOT a fitness app
+- NOT a medical tool
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Component | Technology |
+|-----------|------------|
+| Framework | React 19 + TypeScript |
+| Build | Vite |
+| Local Storage | IndexedDB via Dexie.js |
+| PWA | vite-plugin-pwa + Workbox |
+| Charts | Recharts |
+| Routing | react-router-dom |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+No backend. No API keys. No accounts. Everything runs client-side.
+
+## Getting started
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Building
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
+
+## Project structure
+
+```
+src/
+  db/index.ts                  # Dexie database (weighIns, cycleMarkers, planConfig)
+  utils/
+    averages.ts                # Rolling average math, post-period averages
+    cycleWindows.ts            # Cycle window exclusion logic
+    checkpoints.ts             # Checkpoint verdict computation
+  hooks/
+    useWeighIns.ts             # CRUD + rolling average
+    useCycleMarkers.ts         # CRUD + window exclusion + post-period averages
+    usePlanConfig.ts           # Plan phase state + transitions
+    useCheckpoint.ts           # Checkpoint verdict logic
+  components/
+    WeighInForm.tsx            # Weight input
+    CycleWindowMessage.tsx     # Cycle window UI with "log anyway"
+    RollingAverageChart.tsx    # 30-day chart (daily dots + average line)
+    PostPeriodHero.tsx         # Hero metric display
+    PhaseIndicator.tsx         # Phase / week / checkpoint countdown
+    TargetsReminder.tsx        # Current phase targets
+    CheckpointBanner.tsx       # Checkpoint notification banner
+  screens/
+    Dashboard.tsx              # Home screen
+    CheckpointReview.tsx       # Checkpoint detail + phase transition
+    History.tsx                # Weigh-in list (edit/delete)
+    CycleLog.tsx               # Period start dates + cycle lengths
+    Settings.tsx               # Plan config, export/import, reset
+```
+
+## Hosting
+
+Vercel (free tier). Custom subdomain: `tare.swinch.dev`
