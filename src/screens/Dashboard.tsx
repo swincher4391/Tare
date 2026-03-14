@@ -10,6 +10,7 @@ import { RollingAverageChart } from '../components/RollingAverageChart';
 import { PhaseIndicator } from '../components/PhaseIndicator';
 import { TargetsReminder } from '../components/TargetsReminder';
 import { CheckpointBanner } from '../components/CheckpointBanner';
+import { CycleCalendar } from '../components/CycleCalendar';
 import { useNavigate } from 'react-router-dom';
 
 export function Dashboard() {
@@ -177,6 +178,12 @@ export function Dashboard() {
           cycleMarkers={cycleMarkers}
           checkpointDate={checkpoint1Date}
         />
+      </div>
+
+      {/* Cycle + Weight Calendar */}
+      <div className="card">
+        <div className="card-label">Cycle &amp; Weight</div>
+        <CycleCalendar weighIns={weighIns} cycleMarkers={cycleMarkers} />
       </div>
     </div>
   );
