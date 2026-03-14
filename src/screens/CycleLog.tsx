@@ -15,9 +15,11 @@ export function CycleLog() {
   } = useCycleMarkers(weighIns);
   const navigate = useNavigate();
 
-  const [newDate, setNewDate] = useState(toISODate(new Date()));
+  const [newStart, setNewStart] = useState(toISODate(new Date()));
+  const [newEnd, setNewEnd] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editDate, setEditDate] = useState('');
+  const [editStart, setEditStart] = useState('');
+  const [editEnd, setEditEnd] = useState('');
 
   const sorted = [...cycleMarkers].sort((a, b) =>
     b.periodStart.localeCompare(a.periodStart)
@@ -25,9 +27,10 @@ export function CycleLog() {
   const cycleLengths = computeCycleLengths(cycleMarkers);
 
   async function handleAdd() {
-    if (!newDate) return;
-    await addCycleMarker(newDate);
-    setNewDate(toISODate(new Date()));
+    if (!newStart) return;
+    await addCycleMarker(newStart, newEnd || undefined);
+    setNewStart(toISODate(new Date()));
+    setNewEnd('');
   }
 
   async function handleDelete(id: number) {
@@ -36,18 +39,21 @@ export function CycleLog() {
     }
   }
 
-  function startEdit(id: number, periodStart: string) {
+  function startEdit(id: number, periodStart: string, periodEnd?: string) {
     setEditingId(id);
-    setEditDate(periodStart);
+    setEditStart(periodStart);
+    setEditEnd(periodEnd ?? '');
   }
 
   async function saveEdit(id: number) {
-    if (!editDate) return;
-    await updateCycleMarker(id, editDate);
+    if (!editStart) return;
+    await updateCycleMarker(id, {
+      periodStart: editStart,
+      periodEnd: editEnd || undefined,
+    });
     setEditingId(null);
   }
 
-  // Build a map of cycle lengths for display
   const lengthMap = new Map<string, number>();
   cycleLengths.forEach((cl) => {
     lengthMap.set(cl.to, cl.days);
@@ -64,18 +70,31 @@ export function CycleLog() {
 
       {/* Add new */}
       <div className="card">
-        <div className="card-label">Log Period Start</div>
-        <div className="cycle-add-form">
-          <input
-            type="date"
-            value={newDate}
-            onChange={(e) => setNewDate(e.target.value)}
-            className="date-input"
-          />
-          <button className="btn btn-primary" onClick={handleAdd}>
-            Add
-          </button>
+        <div className="card-label">Log Period</div>
+        <div className="cycle-date-fields">
+          <div className="settings-field">
+            <label>Start</label>
+            <input
+              type="date"
+              value={newStart}
+              onChange={(e) => setNewStart(e.target.value)}
+              className="date-input"
+            />
+          </div>
+          <div className="settings-field">
+            <label>End <span className="text-muted-inline">(optional)</span></label>
+            <input
+              type="date"
+              value={newEnd}
+              min={newStart}
+              onChange={(e) => setNewEnd(e.target.value)}
+              className="date-input"
+            />
+          </div>
         </div>
+        <button className="btn btn-primary" onClick={handleAdd}>
+          Add
+        </button>
       </div>
 
       {/* List */}
@@ -87,12 +106,27 @@ export function CycleLog() {
             <div key={marker.id} className="history-item">
               {editingId === marker.id ? (
                 <div className="history-edit">
-                  <input
-                    type="date"
-                    value={editDate}
-                    onChange={(e) => setEditDate(e.target.value)}
-                    className="date-input"
-                  />
+                  <div className="cycle-date-fields">
+                    <div className="settings-field">
+                      <label>Start</label>
+                      <input
+                        type="date"
+                        value={editStart}
+                        onChange={(e) => setEditStart(e.target.value)}
+                        className="date-input"
+                      />
+                    </div>
+                    <div className="settings-field">
+                      <label>End</label>
+                      <input
+                        type="date"
+                        value={editEnd}
+                        min={editStart}
+                        onChange={(e) => setEditEnd(e.target.value)}
+                        className="date-input"
+                      />
+                    </div>
+                  </div>
                   <div className="history-edit-actions">
                     <button
                       className="btn btn-small"
@@ -113,18 +147,26 @@ export function CycleLog() {
                   <div className="history-item-main">
                     <span className="history-date">
                       {formatDate(marker.periodStart)}
+                      {marker.periodEnd && (
+                        <> — {formatDate(marker.periodEnd)}</>
+                      )}
                     </span>
-                    {lengthMap.has(marker.periodStart) && (
+                    {marker.periodEnd && (
                       <span className="cycle-length">
-                        {lengthMap.get(marker.periodStart)} days since previous
+                        {daysBetween(marker.periodStart, marker.periodEnd) + 1} days
                       </span>
                     )}
                   </div>
+                  {lengthMap.has(marker.periodStart) && (
+                    <div className="cycle-length">
+                      {lengthMap.get(marker.periodStart)} days since previous
+                    </div>
+                  )}
                   <div className="history-actions">
                     <button
                       className="btn btn-small btn-ghost"
                       onClick={() =>
-                        startEdit(marker.id!, marker.periodStart)
+                        startEdit(marker.id!, marker.periodStart, marker.periodEnd)
                       }
                     >
                       Edit
@@ -148,9 +190,13 @@ export function CycleLog() {
 
 function formatDate(date: string) {
   return new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
-    weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
+}
+
+function daysBetween(a: string, b: string): number {
+  const da = new Date(a + 'T00:00:00');
+  const db = new Date(b + 'T00:00:00');
+  return Math.round((db.getTime() - da.getTime()) / (1000 * 60 * 60 * 24));
 }

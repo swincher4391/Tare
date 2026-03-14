@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
 import type { WeighIn, CycleMarker } from '../db';
 import { toISODate } from '../utils/averages';
+import { getEffectivePeriodEnd } from '../utils/cycleWindows';
 
 interface CycleCalendarProps {
   weighIns: WeighIn[];
   cycleMarkers: CycleMarker[];
 }
 
-type CyclePhase = 'period' | 'exclusion-pre' | 'exclusion-post' | 'post-period' | null;
+type CyclePhase = 'period' | 'exclusion-pre' | 'post-period' | null;
 
 function getMonthDays(year: number, month: number): Date[] {
   const days: Date[] = [];
@@ -22,34 +23,25 @@ function getMonthDays(year: number, month: number): Date[] {
 function getCyclePhase(dateStr: string, cycleMarkers: CycleMarker[]): CyclePhase {
   for (const marker of cycleMarkers) {
     const start = new Date(marker.periodStart + 'T00:00:00');
-
-    // Period days: day 0 through day 4 (5 days)
-    const periodEnd = new Date(start);
-    periodEnd.setDate(periodEnd.getDate() + 4);
+    const periodEnd = getEffectivePeriodEnd(marker);
 
     // Pre-period exclusion: day -5 through day -1
     const preStart = new Date(start);
     preStart.setDate(preStart.getDate() - 5);
-    const preEnd = new Date(start);
-    preEnd.setDate(preEnd.getDate() - 1);
 
-    // Post-period exclusion: day 1 through day 3 (already covered by period overlap)
-    // Post-period comparison window: day 4 through day 10
-    const postStart = new Date(start);
-    postStart.setDate(postStart.getDate() + 4);
-    const postEnd = new Date(start);
-    postEnd.setDate(postEnd.getDate() + 10);
+    // Post-period comparison window: periodEnd+1 through periodEnd+7
+    const postStart = new Date(periodEnd + 'T00:00:00');
+    postStart.setDate(postStart.getDate() + 1);
+    const postEnd = new Date(periodEnd + 'T00:00:00');
+    postEnd.setDate(postEnd.getDate() + 7);
 
-    const ds = dateStr;
-
-    if (ds >= toISODate(preStart) && ds < marker.periodStart) {
+    if (dateStr >= toISODate(preStart) && dateStr < marker.periodStart) {
       return 'exclusion-pre';
     }
-    if (ds >= marker.periodStart && ds <= toISODate(periodEnd)) {
+    if (dateStr >= marker.periodStart && dateStr <= periodEnd) {
       return 'period';
     }
-    // Day 4-10: post-period comparison window
-    if (ds > toISODate(periodEnd) && ds <= toISODate(postEnd)) {
+    if (dateStr >= toISODate(postStart) && dateStr <= toISODate(postEnd)) {
       return 'post-period';
     }
   }
@@ -80,7 +72,6 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
     const map = new Map<string, number>();
     for (const w of weighIns) {
       const existing = map.get(w.date);
-      // Keep lowest weight for the day
       if (existing === undefined || w.weight < existing) {
         map.set(w.date, w.weight);
       }
@@ -90,7 +81,6 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
 
   const days = getMonthDays(year, month);
   const firstDayOfWeek = days[0].getDay();
-  // Pad start to align grid
   const padBefore = Array.from({ length: firstDayOfWeek }, () => null);
 
   function prevMonth() {
@@ -110,7 +100,6 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
 
   return (
     <div className="cycle-calendar">
-      {/* Month navigation */}
       <div className="cal-nav">
         <button className="cal-nav-btn" onClick={prevMonth} aria-label="Previous month">&larr;</button>
         <button className="cal-month-label" onClick={goToday}>
@@ -119,18 +108,15 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
         <button className="cal-nav-btn" onClick={nextMonth} aria-label="Next month">&rarr;</button>
       </div>
 
-      {/* Weekday headers */}
       <div className="cal-grid">
         {WEEKDAYS.map((d) => (
           <div key={d} className="cal-header">{d}</div>
         ))}
 
-        {/* Empty cells before first day */}
         {padBefore.map((_, i) => (
           <div key={`pad-${i}`} className="cal-cell cal-cell--empty" />
         ))}
 
-        {/* Day cells */}
         {days.map((day) => {
           const dateStr = toISODate(day);
           const phase = getCyclePhase(dateStr, cycleMarkers);
@@ -156,7 +142,6 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
         })}
       </div>
 
-      {/* Legend */}
       <div className="cal-legend">
         <div className="cal-legend-item">
           <span className="cal-legend-dot cal-legend-dot--period" />

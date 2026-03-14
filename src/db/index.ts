@@ -13,6 +13,7 @@ export interface WeighIn {
 export interface CycleMarker {
   id?: number;
   periodStart: string;     // ISO date string — first day of period
+  periodEnd?: string;      // ISO date string — last day of period
 }
 
 export interface PlanConfig {

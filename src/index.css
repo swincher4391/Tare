@@ -714,6 +714,23 @@ button {
   flex: 1;
 }
 
+.cycle-date-fields {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cycle-date-fields .settings-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.text-muted-inline {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
 /* ===== Withings / Source Indicator ===== */
 .source-indicator {
   font-size: 0.7rem;

@@ -41,14 +41,14 @@ export function useCycleMarkers(weighIns: WeighIn[]) {
       ? latestPostPeriod.average - previousPostPeriod.average
       : null;
 
-  async function addCycleMarker(periodStart: string) {
+  async function addCycleMarker(periodStart: string, periodEnd?: string) {
     // Prevent duplicate entries for the same date
     const existing = await db.cycleMarkers
       .where('periodStart')
       .equals(periodStart)
       .first();
     if (!existing) {
-      await db.cycleMarkers.add({ periodStart });
+      await db.cycleMarkers.add({ periodStart, periodEnd });
     }
   }
 
@@ -56,8 +56,8 @@ export function useCycleMarkers(weighIns: WeighIn[]) {
     await db.cycleMarkers.delete(id);
   }
 
-  async function updateCycleMarker(id: number, periodStart: string) {
-    await db.cycleMarkers.update(id, { periodStart });
+  async function updateCycleMarker(id: number, data: { periodStart?: string; periodEnd?: string }) {
+    await db.cycleMarkers.update(id, data);
   }
 
   return {
