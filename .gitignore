@@ -25,3 +25,7 @@ dist-ssr
 
 # Spec (local only)
 tracker-app-spec.md
+
+# Environment variables
+.env
+.env.*
