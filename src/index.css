@@ -699,6 +699,13 @@ button {
   gap: 8px;
 }
 
+.targets-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
 .phase-buttons {
   display: flex;
   gap: 8px;

@@ -22,12 +22,22 @@ export function Settings() {
   const [startDate, setStartDate] = useState('');
   const [startWeight, setStartWeight] = useState('');
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
+  const [calories, setCalories] = useState('');
+  const [proteinMin, setProteinMin] = useState('');
+  const [proteinMax, setProteinMax] = useState('');
+  const [steps, setSteps] = useState('');
+  const [liftDays, setLiftDays] = useState('');
 
   useEffect(() => {
     if (config) {
       setStartDate(config.startDate);
       setStartWeight(config.startWeight.toString());
       setPhase(config.currentPhase);
+      setCalories(config.targets.calories.toString());
+      setProteinMin(config.targets.protein.min.toString());
+      setProteinMax(config.targets.protein.max.toString());
+      setSteps(config.targets.steps.toString());
+      setLiftDays(config.targets.liftDays.toString());
     }
   }, [config]);
 
@@ -38,14 +48,23 @@ export function Settings() {
     }
   }, [config, latestWeighIn, startWeight]);
 
+  function getCurrentTargets() {
+    return {
+      calories: parseInt(calories) || 1400,
+      protein: { min: parseInt(proteinMin) || 110, max: parseInt(proteinMax) || 120 },
+      steps: parseInt(steps) || 8000,
+      liftDays: parseInt(liftDays) || 3,
+    };
+  }
+
   async function handleSaveConfig() {
     const w = parseFloat(startWeight);
     if (!startDate || isNaN(w)) return;
 
     if (config) {
-      await updateConfig({ startDate, startWeight: w });
+      await updateConfig({ startDate, startWeight: w, targets: getCurrentTargets() });
     } else {
-      await initConfig(startDate, w);
+      await initConfig(startDate, w, getCurrentTargets());
     }
   }
 
@@ -165,6 +184,65 @@ export function Settings() {
             </p>
           )}
         </div>
+        <div className="card-label" style={{ marginTop: '12px' }}>Targets</div>
+        <div className="targets-grid">
+          <div className="settings-field">
+            <label>Calories</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={calories}
+              onChange={(e) => setCalories(e.target.value)}
+              placeholder="1400"
+              className="weight-input weight-input--small"
+            />
+          </div>
+          <div className="settings-field">
+            <label>Lift days/wk</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={liftDays}
+              onChange={(e) => setLiftDays(e.target.value)}
+              placeholder="3"
+              className="weight-input weight-input--small"
+            />
+          </div>
+          <div className="settings-field">
+            <label>Protein min (g)</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={proteinMin}
+              onChange={(e) => setProteinMin(e.target.value)}
+              placeholder="110"
+              className="weight-input weight-input--small"
+            />
+          </div>
+          <div className="settings-field">
+            <label>Protein max (g)</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={proteinMax}
+              onChange={(e) => setProteinMax(e.target.value)}
+              placeholder="120"
+              className="weight-input weight-input--small"
+            />
+          </div>
+          <div className="settings-field">
+            <label>Steps/day</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              placeholder="8000"
+              className="weight-input weight-input--small"
+            />
+          </div>
+        </div>
+
         <button className="btn btn-primary" onClick={handleSaveConfig}>
           {config ? 'Update' : 'Initialize Plan'}
         </button>

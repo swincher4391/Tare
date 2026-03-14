@@ -18,13 +18,13 @@ export function usePlanConfig() {
     ? daysUntil(today, checkpoint1Date)
     : null;
 
-  async function initConfig(startDate: string, startWeight: number) {
+  async function initConfig(startDate: string, startWeight: number, targets?: typeof PHASE1_TARGETS) {
     await db.planConfig.put({
       id: 1,
       startDate,
       startWeight,
       currentPhase: 1,
-      targets: PHASE1_TARGETS,
+      targets: targets ?? PHASE1_TARGETS,
     });
   }
 
@@ -51,10 +51,9 @@ export function usePlanConfig() {
   }
 
   async function setPhaseManually(phase: 1 | 2 | 3) {
-    const targets = phase === 1 ? PHASE1_TARGETS : PHASE2_TARGETS;
+    // Preserve current targets — user may have customized them
     await db.planConfig.update(1, {
       currentPhase: phase,
-      targets,
     });
   }
 
