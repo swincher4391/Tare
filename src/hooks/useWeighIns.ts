@@ -38,9 +38,9 @@ export function useWeighIns() {
     // Check if entry exists for this date
     const existing = await db.weighIns.where('date').equals(entryDate).first();
     if (existing) {
-      await db.weighIns.update(existing.id!, { weight, note, inCycleWindow });
+      await db.weighIns.update(existing.id!, { weight, note, inCycleWindow, source: 'manual' });
     } else {
-      await db.weighIns.add({ date: entryDate, weight, note, inCycleWindow });
+      await db.weighIns.add({ date: entryDate, weight, note, inCycleWindow, source: 'manual' });
     }
   }
 

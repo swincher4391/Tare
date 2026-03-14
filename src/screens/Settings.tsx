@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { usePlanConfig } from '../hooks/usePlanConfig';
-import { useNavigate } from 'react-router-dom';
+import { useWithingsSync } from '../hooks/useWithingsSync';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../db';
 import { toISODate } from '../utils/averages';
 
 export function Settings() {
   const { config, initConfig, updateConfig, setPhaseManually, resetConfig } =
     usePlanConfig();
+  const { connected, lastSyncTime } = useWithingsSync();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const withingsStatus = searchParams.get('withings');
+  const withingsError = searchParams.get('withings_error');
 
   const [startDate, setStartDate] = useState('');
   const [startWeight, setStartWeight] = useState('');
@@ -165,6 +170,43 @@ export function Settings() {
           </div>
         </div>
       )}
+
+      {/* Withings Scale */}
+      <div className="card">
+        <div className="card-label">Withings Scale</div>
+        {withingsStatus === 'connected' && (
+          <p className="success-message">Scale connected successfully.</p>
+        )}
+        {withingsError && (
+          <p className="error-message">Connection failed: {withingsError}</p>
+        )}
+        {connected ? (
+          <>
+            <p className="sync-status">
+              Connected
+              {lastSyncTime && <> &middot; Last sync: {lastSyncTime}</>}
+            </p>
+            <button
+              className="btn btn-ghost btn-danger"
+              onClick={async () => {
+                await fetch('/api/withings-disconnect', {
+                  method: 'POST',
+                  credentials: 'include',
+                });
+                window.location.reload();
+              }}
+            >
+              Disconnect Scale
+            </button>
+          </>
+        ) : connected === false ? (
+          <a href="/api/withings-authorize" className="btn btn-primary">
+            Connect Scale
+          </a>
+        ) : (
+          <p className="text-muted">Checking connection...</p>
+        )}
+      </div>
 
       {/* Data */}
       <div className="card">

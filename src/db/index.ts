@@ -4,6 +4,8 @@ export interface WeighIn {
   id?: number;
   date: string;            // ISO date string (YYYY-MM-DD), one entry per day
   weight: number;          // pounds
+  source: 'withings' | 'manual';
+  withingsGrpId?: number;  // Withings measurement group ID for dedup
   note?: string;           // optional free text ("felt bloated", "post-travel", etc.)
   inCycleWindow?: boolean; // true if logged during cycle window via "log anyway"
 }
@@ -28,10 +30,17 @@ export interface PlanConfig {
   };
 }
 
+export interface SyncState {
+  id: 1;                    // singleton
+  lastSyncTimestamp: number; // epoch seconds
+  connectedAt?: string;     // ISO date when OAuth was completed
+}
+
 class TrackerDB extends Dexie {
   weighIns!: Table<WeighIn>;
   cycleMarkers!: Table<CycleMarker>;
   planConfig!: Table<PlanConfig>;
+  syncState!: Table<SyncState>;
 
   constructor() {
     super('tare');
@@ -39,6 +48,19 @@ class TrackerDB extends Dexie {
       weighIns: '++id, date',
       cycleMarkers: '++id, periodStart',
       planConfig: 'id',
+    });
+    this.version(2).stores({
+      weighIns: '++id, date, withingsGrpId',
+      cycleMarkers: '++id, periodStart',
+      planConfig: 'id',
+      syncState: 'id',
+    }).upgrade((tx) => {
+      // Set source='manual' on all existing entries
+      return tx.table('weighIns').toCollection().modify((entry) => {
+        if (!entry.source) {
+          entry.source = 'manual';
+        }
+      });
     });
   }
 }

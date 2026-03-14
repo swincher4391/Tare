@@ -96,6 +96,9 @@ export function History() {
                   {entry.note && (
                     <div className="history-note">{entry.note}</div>
                   )}
+                  {entry.source === 'withings' && (
+                    <div className="history-source-badge">via scale</div>
+                  )}
                   {entry.inCycleWindow && (
                     <div className="history-cycle-badge">cycle window</div>
                   )}

@@ -2,6 +2,7 @@ import { useWeighIns } from '../hooks/useWeighIns';
 import { useCycleMarkers } from '../hooks/useCycleMarkers';
 import { usePlanConfig } from '../hooks/usePlanConfig';
 import { useCheckpoint } from '../hooks/useCheckpoint';
+import { useWithingsSync } from '../hooks/useWithingsSync';
 import { PostPeriodHero } from '../components/PostPeriodHero';
 import { WeighInForm } from '../components/WeighInForm';
 import { CycleWindowMessage } from '../components/CycleWindowMessage';
@@ -19,6 +20,8 @@ export function Dashboard() {
     trend,
     addWeighIn,
   } = useWeighIns();
+
+  const { syncing, connected } = useWithingsSync();
 
   const {
     cycleMarkers,
@@ -75,7 +78,17 @@ export function Dashboard() {
 
       {/* Today's Entry */}
       <div className="card">
-        <div className="card-label">Today</div>
+        <div className="card-label">
+          Today
+          {todayEntry && (
+            <span className="source-indicator">
+              {todayEntry.source === 'withings' ? 'via scale' : 'manual'}
+            </span>
+          )}
+          {!todayEntry && syncing && (
+            <span className="source-indicator">syncing...</span>
+          )}
+        </div>
         {inCycleWindow && resumeDate ? (
           <CycleWindowMessage
             resumeDate={resumeDate}
@@ -83,10 +96,39 @@ export function Dashboard() {
             todayNote={todayEntry?.note ?? ''}
             onLogAnyway={(w, n) => addWeighIn(w, n, true)}
           />
+        ) : todayEntry ? (
+          <>
+            <div className="today-weight-display">
+              <span className="today-weight-value">{todayEntry.weight.toFixed(1)} lbs</span>
+            </div>
+            {todayEntry.note && <div className="today-note">{todayEntry.note}</div>}
+            <details className="manual-entry-toggle">
+              <summary>Log manually</summary>
+              <WeighInForm
+                todayWeight={todayEntry.weight}
+                todayNote={todayEntry.note ?? ''}
+                onSave={(w, n) => addWeighIn(w, n)}
+              />
+            </details>
+          </>
+        ) : connected ? (
+          <>
+            <div className="today-weight-display">
+              <span className="today-weight-waiting">Waiting for scale sync</span>
+            </div>
+            <details className="manual-entry-toggle">
+              <summary>Log manually</summary>
+              <WeighInForm
+                todayWeight={null}
+                todayNote=""
+                onSave={(w, n) => addWeighIn(w, n)}
+              />
+            </details>
+          </>
         ) : (
           <WeighInForm
-            todayWeight={todayEntry?.weight ?? null}
-            todayNote={todayEntry?.note ?? ''}
+            todayWeight={null}
+            todayNote=""
             onSave={(w, n) => addWeighIn(w, n)}
           />
         )}

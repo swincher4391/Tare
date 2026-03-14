@@ -714,6 +714,83 @@ button {
   flex: 1;
 }
 
+/* ===== Withings / Source Indicator ===== */
+.source-indicator {
+  font-size: 0.7rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 8px;
+  color: var(--color-accent);
+}
+
+.today-weight-display {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.today-weight-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.today-weight-waiting {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.today-note {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.manual-entry-toggle {
+  margin-top: 8px;
+}
+
+.manual-entry-toggle summary {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-align: center;
+}
+
+.manual-entry-toggle[open] summary {
+  margin-bottom: 8px;
+}
+
+.sync-status {
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+}
+
+.success-message {
+  font-size: 0.85rem;
+  color: #059669;
+  margin-bottom: 8px;
+}
+
+.error-message {
+  font-size: 0.85rem;
+  color: var(--color-danger);
+  margin-bottom: 8px;
+}
+
+.history-source-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  background: var(--color-accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
 /* ===== Utility ===== */
 .text-muted {
   color: var(--color-text-muted);
