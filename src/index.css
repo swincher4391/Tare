@@ -897,11 +897,11 @@ button {
 }
 
 .cal-cell--exclusion-pre {
-  background: rgba(167, 139, 250, 0.12);
+  background: rgba(251, 191, 36, 0.2);
 }
 
 .cal-cell--post-period {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(52, 211, 153, 0.18);
 }
 
 .cal-day {
@@ -949,11 +949,11 @@ button {
 }
 
 .cal-legend-dot--exclusion-pre {
-  background: rgba(167, 139, 250, 0.3);
+  background: rgba(251, 191, 36, 0.4);
 }
 
 .cal-legend-dot--post-period {
-  background: rgba(99, 102, 241, 0.25);
+  background: rgba(52, 211, 153, 0.35);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -961,10 +961,10 @@ button {
     background: rgba(239, 68, 68, 0.25);
   }
   .cal-cell--exclusion-pre {
-    background: rgba(167, 139, 250, 0.2);
+    background: rgba(251, 191, 36, 0.25);
   }
   .cal-cell--post-period {
-    background: rgba(99, 102, 241, 0.18);
+    background: rgba(52, 211, 153, 0.22);
   }
 }
 
