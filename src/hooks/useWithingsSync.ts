@@ -83,8 +83,13 @@ export function useWithingsSync(): SyncResult {
               source: 'withings',
               withingsGrpId: entry.grpid,
             });
+          } else if (manualEntry.source === 'withings' && entry.weight < manualEntry.weight) {
+            // Same date, different grpid — keep the lower reading
+            await db.weighIns.update(manualEntry.id!, {
+              weight: entry.weight,
+              withingsGrpId: entry.grpid,
+            });
           }
-          // If a withings entry already exists for this date (different grpid), skip
         }
       }
 
