@@ -198,13 +198,13 @@ export function Settings() {
             />
           </div>
           <div className="settings-field">
-            <label>Lift days/wk</label>
+            <label>Steps/day</label>
             <input
               type="number"
               inputMode="numeric"
-              value={liftDays}
-              onChange={(e) => setLiftDays(e.target.value)}
-              placeholder="3"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              placeholder="8000"
               className="weight-input weight-input--small"
             />
           </div>
@@ -230,14 +230,14 @@ export function Settings() {
               className="weight-input weight-input--small"
             />
           </div>
-          <div className="settings-field">
-            <label>Steps/day</label>
+          <div className="settings-field targets-grid-full">
+            <label>Lift days/wk</label>
             <input
               type="number"
               inputMode="numeric"
-              value={steps}
-              onChange={(e) => setSteps(e.target.value)}
-              placeholder="8000"
+              value={liftDays}
+              onChange={(e) => setLiftDays(e.target.value)}
+              placeholder="3"
               className="weight-input weight-input--small"
             />
           </div>

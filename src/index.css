@@ -713,6 +713,11 @@ button {
   margin-bottom: 12px;
 }
 
+.targets-grid-full {
+  grid-column: 1 / -1;
+  max-width: calc(50% - 6px);
+}
+
 .phase-buttons {
   display: flex;
   gap: 8px;
