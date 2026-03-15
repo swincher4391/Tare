@@ -134,6 +134,35 @@ export function generateCoachingCards(state: CoachingState): CoachingCard[] {
     });
   }
 
+  // Priority 5.5 — Body composition trend
+  if (state.bodyCompTrend) {
+    const bc = state.bodyCompTrend;
+    const fatDown = bc.fatDelta < -0.3;
+    const weightFlat = state.rollingAverageTrend === 'flat' && state.trendDurationDays >= 7;
+
+    let body = `Fat: ${bc.latestFatPercent}% (${bc.fatDelta > 0 ? '+' : ''}${bc.fatDelta}% over ${bc.daysSpan} days).`;
+    if (bc.latestMuscleMassLbs > 0) {
+      const muscleDeltaStr = bc.muscleDelta > 0 ? `+${bc.muscleDelta.toFixed(1)}` : bc.muscleDelta.toFixed(1);
+      body += ` Muscle: ${bc.latestMuscleMassLbs.toFixed(1)} lbs (${muscleDeltaStr}).`;
+    }
+    if (bc.latestWaterPercent > 0) {
+      body += ` Water: ${bc.latestWaterPercent}%.`;
+    }
+
+    if (fatDown && weightFlat) {
+      body += ' Weight is flat but fat percentage is dropping — you\'re likely gaining muscle while losing fat. The scale doesn\'t show this, but the composition is improving.';
+    }
+
+    cards.push({
+      id: 'body-comp',
+      priority: 5,
+      type: fatDown ? 'milestone' : 'info',
+      title: 'Body composition',
+      body,
+      dismissable: true,
+    });
+  }
+
   // Priority 6 — Phase status
   cards.push({
     id: 'phase-status',

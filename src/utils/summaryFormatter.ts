@@ -21,7 +21,11 @@ export function formatSummary(state: CoachingState): string {
       parts.push(`Last avg: ${state.rollingAverage.toFixed(1)}`);
     }
   } else if (state.todayWeight !== null) {
-    parts.push(`${state.todayWeight.toFixed(1)} lbs`);
+    let weightStr = `${state.todayWeight.toFixed(1)} lbs`;
+    if (state.bodyCompTrend?.latestFatPercent) {
+      weightStr += ` (${state.bodyCompTrend.latestFatPercent}% fat)`;
+    }
+    parts.push(weightStr);
     if (state.rollingAverage !== null) {
       const arrow = state.rollingAverageTrend === 'up' ? '↑' : state.rollingAverageTrend === 'down' ? '↓' : '→';
       parts.push(`7-day avg: ${state.rollingAverage.toFixed(1)} ${arrow}`);

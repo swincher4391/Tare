@@ -10,7 +10,7 @@ interface WithingsMeasure {
   grpid: number
   date: number // epoch seconds
   measures: Array<{
-    type: number // 1 = weight
+    type: number
     value: number
     unit: number // actual = value * 10^unit
   }>
@@ -21,6 +21,11 @@ export interface WithingsWeightEntry {
   date: string // ISO date YYYY-MM-DD
   weight: number // lbs
   timestamp: number // epoch seconds
+  fatPercent?: number
+  fatMassLbs?: number
+  muscleMassLbs?: number
+  waterPercent?: number
+  boneMassLbs?: number
 }
 
 async function tokenRequest(params: URLSearchParams): Promise<any> {
@@ -100,7 +105,7 @@ export async function fetchMeasurements(
 
   const params = new URLSearchParams()
   params.set('action', 'getmeas')
-  params.set('meastype', '1') // weight
+  // Don't filter by meastype — fetch all types so we get body comp data
   params.set('category', '1') // real measurements only
   if (lastUpdate > 0) {
     params.set('lastupdate', String(lastUpdate))
@@ -146,37 +151,69 @@ export async function fetchMeasurements(
   }
 }
 
+function parseRawValue(value: number, unit: number): number {
+  return value * Math.pow(10, unit)
+}
+
 function parseMeasureGroups(groups: WithingsMeasure[], timezone?: string): WithingsWeightEntry[] {
   const entries: WithingsWeightEntry[] = []
 
   for (const grp of groups) {
     const weightMeasure = grp.measures.find((m) => m.type === 1)
-    if (!weightMeasure) continue
+    if (!weightMeasure) continue // skip groups without weight
 
-    const kg = weightMeasure.value * Math.pow(10, weightMeasure.unit)
-    const lbs = Math.round(kg * KG_TO_LBS * 10) / 10 // round to 0.1
+    const weightKg = parseRawValue(weightMeasure.value, weightMeasure.unit)
+    const weightLbs = Math.round(weightKg * KG_TO_LBS * 10) / 10
 
     // Convert timestamp to date in the user's timezone
     let date: string
     if (timezone) {
-      const parts = new Intl.DateTimeFormat('en-CA', {
+      date = new Intl.DateTimeFormat('en-CA', {
         timeZone: timezone,
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
       }).format(new Date(grp.date * 1000))
-      date = parts // en-CA format is YYYY-MM-DD
     } else {
       const d = new Date(grp.date * 1000)
       date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     }
 
-    entries.push({
+    // Extract body composition from the same measurement group
+    const entry: WithingsWeightEntry = {
       grpid: grp.grpid,
       date,
-      weight: lbs,
+      weight: weightLbs,
       timestamp: grp.date,
-    })
+    }
+
+    for (const m of grp.measures) {
+      const raw = parseRawValue(m.value, m.unit)
+      switch (m.type) {
+        case 6: // Fat mass (kg)
+          entry.fatMassLbs = Math.round(raw * KG_TO_LBS * 10) / 10
+          break
+        case 8: // Fat %
+          entry.fatPercent = Math.round(raw * 10) / 10
+          break
+        case 76: // Muscle mass (kg)
+          entry.muscleMassLbs = Math.round(raw * KG_TO_LBS * 10) / 10
+          break
+        case 77: // Water %
+          entry.waterPercent = Math.round(raw * 10) / 10
+          break
+        case 88: // Bone mass (kg)
+          entry.boneMassLbs = Math.round(raw * KG_TO_LBS * 10) / 10
+          break
+      }
+    }
+
+    // Fallback: compute fat % from fat mass and weight if not provided directly
+    if (entry.fatPercent === undefined && entry.fatMassLbs !== undefined) {
+      entry.fatPercent = Math.round((entry.fatMassLbs / weightLbs) * 1000) / 10
+    }
+
+    entries.push(entry)
   }
 
   return entries

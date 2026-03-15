@@ -96,6 +96,13 @@ export function History() {
                   {entry.note && (
                     <div className="history-note">{entry.note}</div>
                   )}
+                  {entry.source === 'withings' && entry.fatPercent != null && (
+                    <div className="history-body-comp">
+                      {entry.fatPercent.toFixed(1)}% fat
+                      {entry.waterPercent != null && <> · {entry.waterPercent.toFixed(1)}% water</>}
+                      {entry.muscleMassLbs != null && <> · {entry.muscleMassLbs.toFixed(1)} lbs muscle</>}
+                    </div>
+                  )}
                   {entry.source === 'withings' && (
                     <div className="history-source-badge">via scale</div>
                   )}

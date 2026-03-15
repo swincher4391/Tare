@@ -8,6 +8,12 @@ export interface WeighIn {
   withingsGrpId?: number;  // Withings measurement group ID for dedup
   note?: string;           // optional free text ("felt bloated", "post-travel", etc.)
   inCycleWindow?: boolean; // true if logged during cycle window via "log anyway"
+  // Body composition (only from Withings)
+  fatPercent?: number;
+  fatMassLbs?: number;
+  muscleMassLbs?: number;
+  waterPercent?: number;
+  boneMassLbs?: number;
 }
 
 export interface CycleMarker {
@@ -36,6 +42,7 @@ export interface SyncState {
   lastSyncTimestamp: number; // epoch seconds
   connectedAt?: string;     // ISO date when OAuth was completed
   tzFixApplied?: boolean;   // one-time flag: timezone resync has been done
+  bodyCompSyncApplied?: boolean; // one-time flag: body comp resync done
 }
 
 class TrackerDB extends Dexie {

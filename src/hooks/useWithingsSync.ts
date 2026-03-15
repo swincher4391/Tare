@@ -57,14 +57,22 @@ export function useWithingsSync(): SyncResult {
           .equals(entry.grpid)
           .first();
 
+        // Body comp fields to write alongside weight
+        const bodyComp = {
+          fatPercent: entry.fatPercent,
+          fatMassLbs: entry.fatMassLbs,
+          muscleMassLbs: entry.muscleMassLbs,
+          waterPercent: entry.waterPercent,
+          boneMassLbs: entry.boneMassLbs,
+        };
+
         if (existing) {
-          // Update weight if changed
           await db.weighIns.update(existing.id!, {
             weight: entry.weight,
             source: 'withings' as const,
+            ...bodyComp,
           });
         } else {
-          // Check if a manual entry exists for this date — Withings takes priority
           const manualEntry = await db.weighIns
             .where('date')
             .equals(entry.date)
@@ -75,6 +83,7 @@ export function useWithingsSync(): SyncResult {
               weight: entry.weight,
               source: 'withings' as const,
               withingsGrpId: entry.grpid,
+              ...bodyComp,
             });
           } else if (!manualEntry) {
             await db.weighIns.add({
@@ -82,12 +91,13 @@ export function useWithingsSync(): SyncResult {
               weight: entry.weight,
               source: 'withings',
               withingsGrpId: entry.grpid,
+              ...bodyComp,
             });
           } else if (manualEntry.source === 'withings' && entry.weight < manualEntry.weight) {
-            // Same date, different grpid — keep the lower reading
             await db.weighIns.update(manualEntry.id!, {
               weight: entry.weight,
               withingsGrpId: entry.grpid,
+              ...bodyComp,
             });
           }
         }
@@ -127,6 +137,30 @@ export function useWithingsSync(): SyncResult {
         tzFixApplied: true,
       });
       // Trigger full resync
+      triggerSync();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, syncState]);
+
+  // One-time resync to pull body composition data
+  useEffect(() => {
+    if (connected !== true || syncing) return;
+    if (syncState === undefined) return;
+    if (!syncState?.tzFixApplied) return; // let tz fix run first
+    if (syncState?.bodyCompSyncApplied) return; // already done
+
+    (async () => {
+      const withingsEntries = await db.weighIns.where('source').equals('withings').toArray();
+      if (withingsEntries.length > 0) {
+        await db.weighIns.bulkDelete(withingsEntries.map((e) => e.id!));
+      }
+      await db.syncState.put({
+        id: 1,
+        lastSyncTimestamp: 0,
+        connectedAt: syncState?.connectedAt,
+        tzFixApplied: true,
+        bodyCompSyncApplied: true,
+      });
       triggerSync();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps

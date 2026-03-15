@@ -4,6 +4,7 @@ import type { CoachingState } from '../types/coaching';
 import { computeRollingAverage, toISODate } from '../utils/averages';
 import { isInCycleWindow, getCycleResumeDate } from '../utils/cycleWindows';
 import { computePostPeriodAverage } from '../utils/averages';
+import { computeBodyCompTrend } from '../utils/bodyComp';
 import {
   getCheckpoint1Date,
   getCheckpoint2Date,
@@ -161,6 +162,7 @@ export function useCoachingState(withingsConnected: boolean): CoachingState | nu
     weekNumber,
     weeksInPhase: 4,
     withingsConnected,
+    bodyCompTrend: computeBodyCompTrend(weighIns),
     miseNutrition: null, // set by Coach component via state
   };
 }

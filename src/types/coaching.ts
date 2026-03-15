@@ -35,6 +35,16 @@ export interface CoachingState {
 
   withingsConnected: boolean;
 
+  bodyCompTrend: {
+    latestFatPercent: number;
+    fatDelta: number;
+    latestMuscleMassLbs: number;
+    muscleDelta: number;
+    latestWaterPercent: number;
+    daysSpan: number;
+    readings: number;
+  } | null;
+
   miseNutrition: {
     calories: number;
     protein: number;
