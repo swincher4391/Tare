@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { parseMiseClipboard } from '../utils/parseMiseClipboard';
 
 interface MiseNutritionInputProps {
@@ -14,10 +14,10 @@ interface MiseNutritionInputProps {
 }
 
 export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutritionInputProps) {
-  const [open, setOpen] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [pasteValue, setPasteValue] = useState('');
   const [parseError, setParseError] = useState(false);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
 
   // Manual fields
   const [cal, setCal] = useState('');
@@ -26,16 +26,16 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
   const [carbs, setCarbs] = useState('');
   const [meals, setMeals] = useState('');
 
-  function handlePaste(text: string) {
-    setPasteValue(text);
+  function handlePasteText(text: string) {
     setParseError(false);
     const parsed = parseMiseClipboard(text);
     if (parsed) {
-      onSubmit(parsed);
-      setOpen(false);
       setPasteValue('');
-    } else if (text.length > 3) {
-      setParseError(true);
+      if (detailsRef.current) detailsRef.current.open = false;
+      onSubmit(parsed);
+    } else {
+      setPasteValue(text);
+      if (text.length > 3) setParseError(true);
     }
   }
 
@@ -50,11 +50,11 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
       carbs: parseInt(carbs) || 0,
       mealsPlanned: parseInt(meals) || 0,
     });
-    setOpen(false);
+    if (detailsRef.current) detailsRef.current.open = false;
   }
 
   return (
-    <details className="mise-input-toggle" open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
+    <details className="mise-input-toggle" ref={detailsRef}>
       <summary className="mise-input-summary">
         {hasData ? 'Nutrition from Mise (entered)' : 'Add today\'s nutrition from Mise'}
       </summary>
@@ -66,11 +66,10 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
               className="note-input"
               placeholder="Paste from Mise"
               value={pasteValue}
-              onChange={(e) => handlePaste(e.target.value)}
+              onChange={(e) => handlePasteText(e.target.value)}
               onPaste={(e) => {
                 e.preventDefault();
-                const text = e.clipboardData.getData('text');
-                handlePaste(text);
+                handlePasteText(e.clipboardData.getData('text'));
               }}
             />
             {parseError && (
