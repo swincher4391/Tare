@@ -105,12 +105,13 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
               placeholder="Paste mise: string or share link"
               value={pasteValue}
               onChange={(e) => {
-                setPasteValue(e.target.value);
+                const val = e.target.value;
+                setPasteValue(val);
                 setParseError(false);
-              }}
-              onPaste={(e) => {
-                e.preventDefault();
-                handlePasteText(e.clipboardData.getData('text'));
+                // Auto-detect and process on change (handles Safari paste)
+                if (parseMiseClipboard(val) || isMiseShareUrl(val)) {
+                  handlePasteText(val);
+                }
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && pasteValue) {
