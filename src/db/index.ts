@@ -35,6 +35,7 @@ export interface SyncState {
   id: 1;                    // singleton
   lastSyncTimestamp: number; // epoch seconds
   connectedAt?: string;     // ISO date when OAuth was completed
+  tzFixApplied?: boolean;   // one-time flag: timezone resync has been done
 }
 
 class TrackerDB extends Dexie {

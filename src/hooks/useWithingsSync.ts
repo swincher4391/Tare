@@ -103,6 +103,30 @@ export function useWithingsSync(): SyncResult {
     }
   }, [syncing, syncState]);
 
+  // One-time resync to fix timezone issues (v2)
+  useEffect(() => {
+    if (connected !== true || syncing) return;
+    if (syncState === undefined) return; // still loading
+    if (syncState && syncState.tzFixApplied) return; // already done
+
+    (async () => {
+      // Delete all withings entries and reset sync timestamp
+      const withingsEntries = await db.weighIns.where('source').equals('withings').toArray();
+      if (withingsEntries.length > 0) {
+        await db.weighIns.bulkDelete(withingsEntries.map((e) => e.id!));
+      }
+      await db.syncState.put({
+        id: 1,
+        lastSyncTimestamp: 0,
+        connectedAt: syncState?.connectedAt,
+        tzFixApplied: true,
+      });
+      // Trigger full resync
+      triggerSync();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, syncState]);
+
   // Auto-sync on mount when connected
   useEffect(() => {
     if (connected === true) {
