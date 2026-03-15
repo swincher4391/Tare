@@ -1103,6 +1103,75 @@ button {
   gap: 8px;
 }
 
+/* ===== Nutrition Entries ===== */
+.nutrition-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.nutrition-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--color-bg);
+  border-radius: 8px;
+}
+
+.nutrition-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nutrition-entry-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.nutrition-entry-macros {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.nutrition-totals {
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.nutrition-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 2px 0;
+}
+
+.nutrition-total-label {
+  font-weight: 600;
+}
+
+.nutrition-total-value {
+  color: var(--color-text-muted);
+}
+
+.nutrition-progress {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.nutrition-progress-bar {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
 /* ===== Copy Summary ===== */
 .copy-summary-btn {
   display: block;

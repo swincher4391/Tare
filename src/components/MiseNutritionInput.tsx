@@ -8,7 +8,7 @@ interface MiseNutritionInputProps {
     fat: number;
     carbs: number;
     mealsPlanned: number;
-  }) => void;
+  }, label?: string) => void;
   onClear: () => void;
   hasData: boolean;
 }
@@ -39,7 +39,7 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
     if (parsed) {
       setPasteValue('');
       if (detailsRef.current) detailsRef.current.open = false;
-      onSubmit(parsed);
+      onSubmit(parsed, 'Meal plan');
       return;
     }
 
@@ -63,7 +63,7 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
           fat: Math.round(data.fat),
           carbs: Math.round(data.carbs),
           mealsPlanned: 1,
-        });
+        }, data.title || 'Recipe');
       } catch {
         setParseError('Failed to fetch nutrition from link');
       } finally {
