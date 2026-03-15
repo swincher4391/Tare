@@ -3,6 +3,7 @@ import { Dashboard } from './screens/Dashboard';
 import { CheckpointReview } from './screens/CheckpointReview';
 import { History } from './screens/History';
 import { CycleLog } from './screens/CycleLog';
+import { Coach } from './screens/Coach';
 import { Settings } from './screens/Settings';
 
 function Nav() {
@@ -23,6 +24,10 @@ function Nav() {
       <Link to="/cycles" className={isActive('/cycles')}>
         <span className="nav-icon">◐</span>
         <span className="nav-label">Cycles</span>
+      </Link>
+      <Link to="/coach" className={isActive('/coach')}>
+        <span className="nav-icon">▤</span>
+        <span className="nav-label">Coach</span>
       </Link>
       <Link to="/settings" className={isActive('/settings')}>
         <span className="nav-icon">⚙</span>
@@ -46,6 +51,7 @@ export default function App() {
             <Route path="/checkpoint" element={<CheckpointReview />} />
             <Route path="/history" element={<History />} />
             <Route path="/cycles" element={<CycleLog />} />
+            <Route path="/coach" element={<Coach />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>

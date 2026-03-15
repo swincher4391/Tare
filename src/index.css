@@ -978,6 +978,121 @@ button {
   }
 }
 
+/* ===== Coach Tab ===== */
+.coach-date {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.coaching-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coaching-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-left: 4px solid var(--color-border);
+}
+
+.coaching-card--checkpoint {
+  border-left-color: var(--color-accent);
+}
+
+.coaching-card--warning {
+  border-left-color: #f59e0b;
+}
+
+.coaching-card--action {
+  border-left-color: var(--color-accent);
+}
+
+.coaching-card--milestone {
+  border-left-color: #10b981;
+}
+
+.coaching-card--info {
+  border-left-color: var(--color-text-muted);
+}
+
+.coaching-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.coaching-card-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.coaching-card-body {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.coaching-card-dismiss {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.coaching-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+/* Mise nutrition input */
+.mise-input-toggle {
+  margin: 0;
+}
+
+.mise-input-summary {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.mise-input-fields {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mise-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mise-input-row .weight-input--small {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mise-input-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* ===== Copy Summary ===== */
 .copy-summary-btn {
   display: block;
