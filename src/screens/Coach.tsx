@@ -8,10 +8,11 @@ import { useNavigate } from 'react-router-dom';
 
 interface NutritionEntry {
   label: string;
-  calories: number;
+  calories: number;  // per serving
   protein: number;
   fat: number;
   carbs: number;
+  servings: number;
 }
 
 export function Coach() {
@@ -22,14 +23,14 @@ export function Coach() {
   const [entries, setEntries] = useState<NutritionEntry[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  // Compute running totals
+  // Compute running totals (macros × servings)
   const totals = useMemo(() => {
     if (entries.length === 0) return null;
     return {
-      calories: entries.reduce((s, e) => s + e.calories, 0),
-      protein: entries.reduce((s, e) => s + e.protein, 0),
-      fat: entries.reduce((s, e) => s + e.fat, 0),
-      carbs: entries.reduce((s, e) => s + e.carbs, 0),
+      calories: Math.round(entries.reduce((s, e) => s + e.calories * e.servings, 0)),
+      protein: Math.round(entries.reduce((s, e) => s + e.protein * e.servings, 0)),
+      fat: Math.round(entries.reduce((s, e) => s + e.fat * e.servings, 0)),
+      carbs: Math.round(entries.reduce((s, e) => s + e.carbs * e.servings, 0)),
       mealsPlanned: entries.length,
     };
   }, [entries]);
@@ -48,11 +49,20 @@ export function Coach() {
       protein: data.protein,
       fat: data.fat,
       carbs: data.carbs,
+      servings: 1,
     }]);
   }
 
   function handleRemoveEntry(index: number) {
     setEntries((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleServingsChange(index: number, delta: number) {
+    setEntries((prev) => prev.map((e, i) => {
+      if (i !== index) return e;
+      const next = Math.max(0.5, Math.round((e.servings + delta) * 2) / 2); // step by 0.5
+      return { ...e, servings: next };
+    }));
   }
 
   function handleDismiss(id: string) {
@@ -104,8 +114,13 @@ export function Coach() {
                     ×
                   </button>
                 </div>
+                <div className="nutrition-entry-servings">
+                  <button className="servings-btn" onClick={() => handleServingsChange(i, -0.5)}>−</button>
+                  <span className="servings-value">{entry.servings === 1 ? '1 serving' : `${entry.servings} servings`}</span>
+                  <button className="servings-btn" onClick={() => handleServingsChange(i, 0.5)}>+</button>
+                </div>
                 <div className="nutrition-entry-macros">
-                  {entry.calories} cal · {entry.protein}g P · {entry.fat}g F · {entry.carbs}g C
+                  {Math.round(entry.calories * entry.servings)} cal · {Math.round(entry.protein * entry.servings)}g P · {Math.round(entry.fat * entry.servings)}g F · {Math.round(entry.carbs * entry.servings)}g C
                 </div>
               </div>
             ))}
