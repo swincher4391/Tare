@@ -13,10 +13,15 @@ interface MiseNutritionInputProps {
   hasData: boolean;
 }
 
+function isMiseShareUrl(text: string): boolean {
+  return text.trim().includes('mise.swinch.dev/api/r');
+}
+
 export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutritionInputProps) {
   const [showManual, setShowManual] = useState(false);
   const [pasteValue, setPasteValue] = useState('');
-  const [parseError, setParseError] = useState(false);
+  const [parseError, setParseError] = useState<string | false>(false);
+  const [fetching, setFetching] = useState(false);
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   // Manual fields
@@ -26,17 +31,50 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
   const [carbs, setCarbs] = useState('');
   const [meals, setMeals] = useState('');
 
-  function handlePasteText(text: string) {
+  async function handlePasteText(text: string) {
     setParseError(false);
+
+    // Try mise: format first
     const parsed = parseMiseClipboard(text);
     if (parsed) {
       setPasteValue('');
       if (detailsRef.current) detailsRef.current.open = false;
       onSubmit(parsed);
-    } else {
-      setPasteValue(text);
-      if (text.length > 3) setParseError(true);
+      return;
     }
+
+    // Try Mise share URL
+    if (isMiseShareUrl(text)) {
+      setPasteValue(text);
+      setFetching(true);
+      try {
+        const res = await fetch(`/api/mise-nutrition?url=${encodeURIComponent(text.trim())}`);
+        if (!res.ok) {
+          const data = await res.json();
+          setParseError(data.error || 'Failed to fetch nutrition');
+          return;
+        }
+        const data = await res.json();
+        setPasteValue('');
+        if (detailsRef.current) detailsRef.current.open = false;
+        onSubmit({
+          calories: Math.round(data.calories),
+          protein: Math.round(data.protein),
+          fat: Math.round(data.fat),
+          carbs: Math.round(data.carbs),
+          mealsPlanned: 1,
+        });
+      } catch {
+        setParseError('Failed to fetch nutrition from link');
+      } finally {
+        setFetching(false);
+      }
+      return;
+    }
+
+    // Neither format
+    setPasteValue(text);
+    if (text.length > 3) setParseError('Couldn\'t parse — try a mise: string, share link, or enter manually');
   }
 
   function handleManualSubmit() {
@@ -64,17 +102,24 @@ export function MiseNutritionInput({ onSubmit, onClear, hasData }: MiseNutrition
             <input
               type="text"
               className="note-input"
-              placeholder="Paste from Mise"
+              placeholder="Paste mise: string or share link"
               value={pasteValue}
-              onChange={(e) => handlePasteText(e.target.value)}
+              onChange={(e) => {
+                setPasteValue(e.target.value);
+                setParseError(false);
+              }}
               onPaste={(e) => {
                 e.preventDefault();
                 handlePasteText(e.clipboardData.getData('text'));
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && pasteValue) {
+                  handlePasteText(pasteValue);
+                }
+              }}
             />
-            {parseError && (
-              <p className="error-message">Couldn't parse — try entering manually</p>
-            )}
+            {fetching && <p className="text-muted" style={{ fontSize: '0.85rem' }}>Fetching nutrition...</p>}
+            {parseError && <p className="error-message">{parseError}</p>}
             <button
               className="mise-manual-toggle"
               onClick={() => setShowManual(true)}
