@@ -88,7 +88,8 @@ export async function refreshTokens(
 export async function fetchMeasurements(
   session: WithingsSession,
   lastUpdate: number,
-  res: VercelResponse
+  res: VercelResponse,
+  timezone?: string
 ): Promise<{ entries: WithingsWeightEntry[]; session: WithingsSession }> {
   let currentSession = session
 
@@ -132,7 +133,7 @@ export async function fetchMeasurements(
     if (retryData.status !== 0) {
       throw new Error(`Withings API error after refresh (status ${retryData.status})`)
     }
-    return { entries: parseMeasureGroups(retryData.body.measuregrps ?? []), session: currentSession }
+    return { entries: parseMeasureGroups(retryData.body.measuregrps ?? [], timezone), session: currentSession }
   }
 
   if (data.status !== 0) {
@@ -140,12 +141,12 @@ export async function fetchMeasurements(
   }
 
   return {
-    entries: parseMeasureGroups(data.body.measuregrps ?? []),
+    entries: parseMeasureGroups(data.body.measuregrps ?? [], timezone),
     session: currentSession,
   }
 }
 
-function parseMeasureGroups(groups: WithingsMeasure[]): WithingsWeightEntry[] {
+function parseMeasureGroups(groups: WithingsMeasure[], timezone?: string): WithingsWeightEntry[] {
   const entries: WithingsWeightEntry[] = []
 
   for (const grp of groups) {
@@ -155,8 +156,20 @@ function parseMeasureGroups(groups: WithingsMeasure[]): WithingsWeightEntry[] {
     const kg = weightMeasure.value * Math.pow(10, weightMeasure.unit)
     const lbs = Math.round(kg * KG_TO_LBS * 10) / 10 // round to 0.1
 
-    const d = new Date(grp.date * 1000)
-    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    // Convert timestamp to date in the user's timezone
+    let date: string
+    if (timezone) {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date(grp.date * 1000))
+      date = parts // en-CA format is YYYY-MM-DD
+    } else {
+      const d = new Date(grp.date * 1000)
+      date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    }
 
     entries.push({
       grpid: grp.grpid,

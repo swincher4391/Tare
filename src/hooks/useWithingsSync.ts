@@ -32,7 +32,8 @@ export function useWithingsSync(): SyncResult {
 
     try {
       const lastUpdate = syncState?.lastSyncTimestamp ?? 0;
-      const res = await fetch(`/api/withings-sync?lastupdate=${lastUpdate}`, {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const res = await fetch(`/api/withings-sync?lastupdate=${lastUpdate}&timezone=${encodeURIComponent(tz)}`, {
         credentials: 'include',
       });
 

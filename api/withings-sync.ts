@@ -15,9 +15,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const lastUpdate = parseInt(req.query.lastupdate as string) || 0
+  const timezone = req.query.timezone as string | undefined
 
   try {
-    const { entries, session: updatedSession } = await fetchMeasurements(session, lastUpdate, res)
+    const { entries, session: updatedSession } = await fetchMeasurements(session, lastUpdate, res, timezone)
 
     // Find the latest timestamp for the client to store as lastSyncTimestamp
     const maxTimestamp = entries.reduce((max, e) => Math.max(max, e.timestamp), lastUpdate)
