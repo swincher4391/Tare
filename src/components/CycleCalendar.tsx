@@ -141,9 +141,9 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
           const water = waterMap.get(dateStr);
           const isToday = dateStr === todayStr;
 
-          // Water tint: higher water % = more blue (only when no cycle phase color)
-          const waterStyle = water !== undefined && !phase
-            ? { backgroundColor: `rgba(59, 130, 246, ${0.05 + ((water - waterMin) / waterRange) * 0.15})` }
+          // Water tint: blue background when water data exists
+          const waterStyle = water !== undefined
+            ? { backgroundColor: phase ? undefined : `rgba(59, 130, 246, ${0.12 + ((water - waterMin) / waterRange) * 0.18})` }
             : undefined;
 
           return (
