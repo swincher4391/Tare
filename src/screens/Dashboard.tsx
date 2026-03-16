@@ -106,6 +106,9 @@ export function Dashboard() {
           <>
             <div className="today-weight-display">
               <span className="today-weight-value">{todayEntry.weight.toFixed(1)} lbs</span>
+              {todayEntry.fatPercent != null && (
+                <span className="today-body-comp"> · {todayEntry.fatPercent.toFixed(1)}% fat</span>
+              )}
             </div>
             {todayEntry.note && <div className="today-note">{todayEntry.note}</div>}
             <details className="manual-entry-toggle">

@@ -79,6 +79,23 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
     return map;
   }, [weighIns]);
 
+  // Build water % lookup: date → waterPercent
+  const waterMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const w of weighIns) {
+      if (w.waterPercent != null) {
+        map.set(w.date, w.waterPercent);
+      }
+    }
+    return map;
+  }, [weighIns]);
+
+  // Compute water % range for tint intensity
+  const waterValues = Array.from(waterMap.values());
+  const waterMin = waterValues.length > 0 ? Math.min(...waterValues) : 0;
+  const waterMax = waterValues.length > 0 ? Math.max(...waterValues) : 100;
+  const waterRange = waterMax - waterMin || 1;
+
   const days = getMonthDays(year, month);
   const firstDayOfWeek = days[0].getDay();
   const padBefore = Array.from({ length: firstDayOfWeek }, () => null);
@@ -121,7 +138,13 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
           const dateStr = toISODate(day);
           const phase = getCyclePhase(dateStr, cycleMarkers);
           const weight = weightMap.get(dateStr);
+          const water = waterMap.get(dateStr);
           const isToday = dateStr === todayStr;
+
+          // Water tint: higher water % = more blue (only when no cycle phase color)
+          const waterStyle = water !== undefined && !phase
+            ? { backgroundColor: `rgba(59, 130, 246, ${0.05 + ((water - waterMin) / waterRange) * 0.15})` }
+            : undefined;
 
           return (
             <div
@@ -131,7 +154,8 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
                 phase ? `cal-cell--${phase}` : '',
                 isToday ? 'cal-cell--today' : '',
               ].join(' ')}
-              title={phase ? PHASE_LABELS[phase] ?? '' : undefined}
+              style={waterStyle}
+              title={phase ? PHASE_LABELS[phase] : water !== undefined ? `Water: ${water.toFixed(1)}%` : undefined}
             >
               <span className="cal-day">{day.getDate()}</span>
               {weight !== undefined && (
@@ -155,6 +179,12 @@ export function CycleCalendar({ weighIns, cycleMarkers }: CycleCalendarProps) {
           <span className="cal-legend-dot cal-legend-dot--post-period" />
           <span>Post-period</span>
         </div>
+        {waterValues.length > 0 && (
+          <div className="cal-legend-item">
+            <span className="cal-legend-dot cal-legend-dot--water" />
+            <span>Water %</span>
+          </div>
+        )}
       </div>
     </div>
   );
