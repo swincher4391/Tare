@@ -103,12 +103,14 @@ export function useWithingsSync(): SyncResult {
         }
       }
 
-      // Update sync state
+      // Update sync state (preserve existing flags)
       if (data.lastSyncTimestamp > 0) {
+        const existing = await db.syncState.get(1);
         await db.syncState.put({
+          ...existing,
           id: 1,
           lastSyncTimestamp: data.lastSyncTimestamp,
-          connectedAt: syncState?.connectedAt ?? new Date().toISOString().split('T')[0],
+          connectedAt: existing?.connectedAt ?? syncState?.connectedAt ?? new Date().toISOString().split('T')[0],
         });
       }
     } catch (err) {
@@ -130,13 +132,14 @@ export function useWithingsSync(): SyncResult {
       if (withingsEntries.length > 0) {
         await db.weighIns.bulkDelete(withingsEntries.map((e) => e.id!));
       }
+      const existingSync = await db.syncState.get(1);
       await db.syncState.put({
+        ...existingSync,
         id: 1,
         lastSyncTimestamp: 0,
         connectedAt: syncState?.connectedAt,
         tzFixApplied: true,
       });
-      // Trigger full resync
       triggerSync();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,7 +149,6 @@ export function useWithingsSync(): SyncResult {
   useEffect(() => {
     if (connected !== true || syncing) return;
     if (syncState === undefined) return;
-    if (!syncState?.tzFixApplied) return; // let tz fix run first
     if (syncState?.bodyCompSyncApplied) return; // already done
 
     (async () => {
