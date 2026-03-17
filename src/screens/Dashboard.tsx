@@ -11,6 +11,7 @@ import { PhaseIndicator } from '../components/PhaseIndicator';
 import { TargetsReminder } from '../components/TargetsReminder';
 import { CheckpointBanner } from '../components/CheckpointBanner';
 import { CycleCalendar } from '../components/CycleCalendar';
+import { CycleDayTrendChart } from '../components/CycleDayTrendChart';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useCoachingState } from '../hooks/useCoachingState';
@@ -108,32 +109,11 @@ export function Dashboard() {
               <div className="cycle-day-compare">No data last cycle</div>
             )}
           </div>
-          {cycleDayHistory.length >= 2 && (
-            <div className="cycle-day-trend">
-              <div className="cycle-day-trend-label">Day {cycleDay} across cycles</div>
-              <div className="cycle-day-trend-points">
-                {cycleDayHistory.map((point, i) => {
-                  const label = new Date(point.cycleStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' });
-                  return (
-                    <div key={i} className="cycle-day-trend-point">
-                      <span className="cycle-day-trend-weight">{point.weight.toFixed(1)}</span>
-                      <span className="cycle-day-trend-date">{label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              {cycleDayHistory.length >= 2 && (() => {
-                const first = cycleDayHistory[0].weight;
-                const last = cycleDayHistory[cycleDayHistory.length - 1].weight;
-                const delta = last - first;
-                return (
-                  <div className="cycle-day-trend-delta">
-                    {delta > 0 ? '+' : ''}{delta.toFixed(1)} lbs over {cycleDayHistory.length} cycles
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+          <CycleDayTrendChart
+            cycleDay={cycleDay}
+            points={cycleDayHistory}
+            todayWeight={todayEntry?.weight}
+          />
         </div>
       )}
 

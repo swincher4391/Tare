@@ -804,46 +804,13 @@ button {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
-  margin-bottom: 6px;
-}
-
-.cycle-day-trend-points {
-  display: flex;
-  gap: 4px;
-  align-items: flex-end;
-  overflow-x: auto;
-}
-
-.cycle-day-trend-point {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 44px;
-  gap: 2px;
-}
-
-.cycle-day-trend-weight {
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.cycle-day-trend-date {
-  font-size: 0.65rem;
-  color: var(--color-text-muted);
-}
-
-.cycle-day-trend-point + .cycle-day-trend-point::before {
-  content: '→';
-  position: absolute;
-  left: -8px;
-  color: var(--color-text-muted);
-  font-size: 0.7rem;
+  margin-bottom: 4px;
 }
 
 .cycle-day-trend-delta {
   font-size: 0.8rem;
   color: var(--color-text-muted);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 /* ===== Withings / Source Indicator ===== */

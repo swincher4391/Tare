@@ -141,33 +141,53 @@ export function getPreviousCycleDayWeight(
 
 /**
  * Get weights for a specific cycle day across all cycles.
- * Returns array of { cycleStart, date, weight } sorted chronologically.
+ * If exact day is missing, averages adjacent days (day-1 and day+1).
+ * Returns array of { cycleStart, date, weight, interpolated } sorted chronologically.
  */
 export function getWeightsForCycleDay(
   cycleDay: number,
   cycleMarkers: CycleMarker[],
   weighIns: { date: string; weight: number }[]
-): { cycleStart: string; date: string; weight: number }[] {
+): { cycleStart: string; date: string; weight: number; interpolated: boolean }[] {
   const sorted = [...cycleMarkers]
     .sort((a, b) => a.periodStart.localeCompare(b.periodStart));
 
   const weighInMap = new Map(weighIns.map((w) => [w.date, w.weight]));
-  const results: { cycleStart: string; date: string; weight: number }[] = [];
+  const results: { cycleStart: string; date: string; weight: number; interpolated: boolean }[] = [];
 
   for (const marker of sorted) {
     const start = new Date(marker.periodStart + 'T00:00:00');
     const targetDate = new Date(start);
-    targetDate.setDate(targetDate.getDate() + (cycleDay - 1)); // cycleDay is 1-based
+    targetDate.setDate(targetDate.getDate() + (cycleDay - 1));
     const dateStr = toISODate(targetDate);
 
-    const weight = weighInMap.get(dateStr);
-    if (weight !== undefined) {
+    const exact = weighInMap.get(dateStr);
+    if (exact !== undefined) {
+      results.push({ cycleStart: marker.periodStart, date: dateStr, weight: exact, interpolated: false });
+      continue;
+    }
+
+    // Try averaging adjacent days
+    const prev = new Date(targetDate);
+    prev.setDate(prev.getDate() - 1);
+    const next = new Date(targetDate);
+    next.setDate(next.getDate() + 1);
+    const prevWeight = weighInMap.get(toISODate(prev));
+    const nextWeight = weighInMap.get(toISODate(next));
+
+    if (prevWeight !== undefined && nextWeight !== undefined) {
       results.push({
         cycleStart: marker.periodStart,
         date: dateStr,
-        weight,
+        weight: Math.round(((prevWeight + nextWeight) / 2) * 10) / 10,
+        interpolated: true,
       });
+    } else if (prevWeight !== undefined) {
+      results.push({ cycleStart: marker.periodStart, date: dateStr, weight: prevWeight, interpolated: true });
+    } else if (nextWeight !== undefined) {
+      results.push({ cycleStart: marker.periodStart, date: dateStr, weight: nextWeight, interpolated: true });
     }
+    // If no adjacent data either, skip this cycle
   }
 
   return results;
