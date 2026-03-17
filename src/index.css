@@ -760,6 +760,33 @@ button {
   font-size: 0.75rem;
 }
 
+/* ===== Cycle Day Card ===== */
+.cycle-day-card {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.cycle-day-number {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.cycle-day-compare {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.cycle-day-delta {
+  font-weight: 600;
+}
+
 /* ===== Withings / Source Indicator ===== */
 .source-indicator {
   font-size: 0.7rem;

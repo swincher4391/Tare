@@ -15,6 +15,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useCoachingState } from '../hooks/useCoachingState';
 import { formatSummary } from '../utils/summaryFormatter';
+import { getCurrentCycleDay, getPreviousCycleDayWeight } from '../utils/cycleWindows';
+import { toISODate } from '../utils/averages';
 
 export function Dashboard() {
   const {
@@ -55,6 +57,11 @@ export function Dashboard() {
   const trendArrow =
     trend === 'up' ? '↑' : trend === 'down' ? '↓' : trend === 'flat' ? '→' : '';
 
+  // Cycle day tracking
+  const today = toISODate(new Date());
+  const cycleDay = getCurrentCycleDay(today, cycleMarkers);
+  const prevCycleDayWeight = getPreviousCycleDayWeight(today, cycleMarkers, weighIns);
+
   // Next comparison date: latest cycle marker periodStart + 11 days
   const nextComparisonDate = (() => {
     if (cycleMarkers.length === 0) return null;
@@ -81,6 +88,25 @@ export function Dashboard() {
         inCycleWindow={inCycleWindow}
         nextComparisonDate={nextComparisonDate}
       />
+
+      {/* Cycle Day */}
+      {cycleDay !== null && (
+        <div className="cycle-day-card">
+          <div className="cycle-day-number">Day {cycleDay}</div>
+          {prevCycleDayWeight ? (
+            <div className="cycle-day-compare">
+              Last cycle day {cycleDay}: {prevCycleDayWeight.weight.toFixed(1)} lbs
+              {todayEntry && (
+                <span className="cycle-day-delta">
+                  {' '}({(todayEntry.weight - prevCycleDayWeight.weight) > 0 ? '+' : ''}{(todayEntry.weight - prevCycleDayWeight.weight).toFixed(1)})
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="cycle-day-compare">No data for day {cycleDay} last cycle</div>
+          )}
+        </div>
+      )}
 
       {/* Today's Entry */}
       <div className="card">

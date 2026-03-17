@@ -76,6 +76,70 @@ export function isInPeriod(
 export { getEffectivePeriodEnd };
 
 /**
+ * Get the current cycle day (1-based, day 1 = period start).
+ * Returns null if no cycle markers exist or today is before the first marker.
+ */
+export function getCurrentCycleDay(
+  today: string,
+  cycleMarkers: CycleMarker[]
+): number | null {
+  const sorted = [...cycleMarkers]
+    .sort((a, b) => a.periodStart.localeCompare(b.periodStart));
+
+  // Find the most recent period start that's on or before today
+  let latest: CycleMarker | null = null;
+  for (const marker of sorted) {
+    if (marker.periodStart <= today) {
+      latest = marker;
+    }
+  }
+  if (!latest) return null;
+
+  const start = new Date(latest.periodStart + 'T00:00:00');
+  const t = new Date(today + 'T00:00:00');
+  const days = Math.floor((t.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return days + 1; // 1-based
+}
+
+/**
+ * Find the weight on the same cycle day from the previous cycle.
+ * Returns the weight and date, or null if not available.
+ */
+export function getPreviousCycleDayWeight(
+  today: string,
+  cycleMarkers: CycleMarker[],
+  weighIns: { date: string; weight: number }[]
+): { weight: number; date: string } | null {
+  const sorted = [...cycleMarkers]
+    .sort((a, b) => a.periodStart.localeCompare(b.periodStart));
+
+  // Find current and previous period starts
+  let currentIdx = -1;
+  for (let i = 0; i < sorted.length; i++) {
+    if (sorted[i].periodStart <= today) {
+      currentIdx = i;
+    }
+  }
+  if (currentIdx < 1) return null; // need at least 2 cycles
+
+  const currentStart = new Date(sorted[currentIdx].periodStart + 'T00:00:00');
+  const previousStart = new Date(sorted[currentIdx - 1].periodStart + 'T00:00:00');
+  const t = new Date(today + 'T00:00:00');
+
+  const cycleDay = Math.floor((t.getTime() - currentStart.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Same cycle day in previous cycle
+  const prevDate = new Date(previousStart);
+  prevDate.setDate(prevDate.getDate() + cycleDay);
+  const prevDateStr = toISODate(prevDate);
+
+  const entry = weighIns.find((w) => w.date === prevDateStr);
+  if (!entry) return null;
+
+  return { weight: entry.weight, date: prevDateStr };
+}
+
+/**
  * Compute cycle lengths (days between consecutive period starts).
  */
 export function computeCycleLengths(
