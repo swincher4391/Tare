@@ -97,7 +97,7 @@ export function getCurrentCycleDay(
 
   const start = new Date(latest.periodStart + 'T00:00:00');
   const t = new Date(today + 'T00:00:00');
-  const days = Math.floor((t.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const days = Math.round((t.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   return days + 1; // 1-based
 }
 
@@ -126,7 +126,7 @@ export function getPreviousCycleDayWeight(
   const previousStart = new Date(sorted[currentIdx - 1].periodStart + 'T00:00:00');
   const t = new Date(today + 'T00:00:00');
 
-  const cycleDay = Math.floor((t.getTime() - currentStart.getTime()) / (1000 * 60 * 60 * 24));
+  const cycleDay = Math.round((t.getTime() - currentStart.getTime()) / (1000 * 60 * 60 * 24));
 
   // Same cycle day in previous cycle
   const prevDate = new Date(previousStart);
@@ -137,6 +137,40 @@ export function getPreviousCycleDayWeight(
   if (!entry) return null;
 
   return { weight: entry.weight, date: prevDateStr };
+}
+
+/**
+ * Get weights for a specific cycle day across all cycles.
+ * Returns array of { cycleStart, date, weight } sorted chronologically.
+ */
+export function getWeightsForCycleDay(
+  cycleDay: number,
+  cycleMarkers: CycleMarker[],
+  weighIns: { date: string; weight: number }[]
+): { cycleStart: string; date: string; weight: number }[] {
+  const sorted = [...cycleMarkers]
+    .sort((a, b) => a.periodStart.localeCompare(b.periodStart));
+
+  const weighInMap = new Map(weighIns.map((w) => [w.date, w.weight]));
+  const results: { cycleStart: string; date: string; weight: number }[] = [];
+
+  for (const marker of sorted) {
+    const start = new Date(marker.periodStart + 'T00:00:00');
+    const targetDate = new Date(start);
+    targetDate.setDate(targetDate.getDate() + (cycleDay - 1)); // cycleDay is 1-based
+    const dateStr = toISODate(targetDate);
+
+    const weight = weighInMap.get(dateStr);
+    if (weight !== undefined) {
+      results.push({
+        cycleStart: marker.periodStart,
+        date: dateStr,
+        weight,
+      });
+    }
+  }
+
+  return results;
 }
 
 /**

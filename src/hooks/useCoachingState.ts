@@ -108,7 +108,7 @@ export function useCoachingState(withingsConnected: boolean): CoachingState | nu
   const targets = config?.targets ?? { calories: 1400, protein: { min: 110, max: 120 }, steps: 8000, liftDays: 3 };
 
   const dayNumber = planInitialized
-    ? Math.floor((new Date(today + 'T00:00:00').getTime() - new Date(planStartDate + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1
+    ? Math.round((new Date(today + 'T00:00:00').getTime() - new Date(planStartDate + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1
     : 0;
   const weekNumber = planInitialized ? getCurrentWeek(planStartDate, today) : 0;
 

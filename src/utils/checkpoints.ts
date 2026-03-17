@@ -145,6 +145,6 @@ export function daysUntil(today: string, targetDate: string): number {
 export function getCurrentWeek(startDate: string, today: string): number {
   const s = new Date(startDate + 'T00:00:00');
   const t = new Date(today + 'T00:00:00');
-  const days = Math.floor((t.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+  const days = Math.round((t.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
   return Math.floor(days / 7) + 1;
 }
