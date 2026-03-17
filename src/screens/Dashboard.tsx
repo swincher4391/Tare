@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useCoachingState } from '../hooks/useCoachingState';
 import { formatSummary } from '../utils/summaryFormatter';
-import { getCurrentCycleDay, getPreviousCycleDayWeight } from '../utils/cycleWindows';
+import { getCurrentCycleDay, getPreviousCycleDayWeight, getWeightsForCycleDay } from '../utils/cycleWindows';
 import { toISODate } from '../utils/averages';
 
 export function Dashboard() {
@@ -61,6 +61,7 @@ export function Dashboard() {
   const today = toISODate(new Date());
   const cycleDay = getCurrentCycleDay(today, cycleMarkers);
   const prevCycleDayWeight = getPreviousCycleDayWeight(today, cycleMarkers, weighIns);
+  const cycleDayHistory = cycleDay !== null ? getWeightsForCycleDay(cycleDay, cycleMarkers, weighIns) : [];
 
   // Next comparison date: latest cycle marker periodStart + 11 days
   const nextComparisonDate = (() => {
@@ -92,18 +93,46 @@ export function Dashboard() {
       {/* Cycle Day */}
       {cycleDay !== null && (
         <div className="cycle-day-card">
-          <div className="cycle-day-number">Day {cycleDay}</div>
-          {prevCycleDayWeight ? (
-            <div className="cycle-day-compare">
-              Last cycle day {cycleDay}: {prevCycleDayWeight.weight.toFixed(1)} lbs
-              {todayEntry && (
-                <span className="cycle-day-delta">
-                  {' '}({(todayEntry.weight - prevCycleDayWeight.weight) > 0 ? '+' : ''}{(todayEntry.weight - prevCycleDayWeight.weight).toFixed(1)})
-                </span>
-              )}
+          <div className="cycle-day-header">
+            <div className="cycle-day-number">Day {cycleDay}</div>
+            {prevCycleDayWeight ? (
+              <div className="cycle-day-compare">
+                Last cycle: {prevCycleDayWeight.weight.toFixed(1)} lbs
+                {todayEntry && (
+                  <span className="cycle-day-delta">
+                    {' '}({(todayEntry.weight - prevCycleDayWeight.weight) > 0 ? '+' : ''}{(todayEntry.weight - prevCycleDayWeight.weight).toFixed(1)})
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="cycle-day-compare">No data last cycle</div>
+            )}
+          </div>
+          {cycleDayHistory.length >= 2 && (
+            <div className="cycle-day-trend">
+              <div className="cycle-day-trend-label">Day {cycleDay} across cycles</div>
+              <div className="cycle-day-trend-points">
+                {cycleDayHistory.map((point, i) => {
+                  const label = new Date(point.cycleStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' });
+                  return (
+                    <div key={i} className="cycle-day-trend-point">
+                      <span className="cycle-day-trend-weight">{point.weight.toFixed(1)}</span>
+                      <span className="cycle-day-trend-date">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {cycleDayHistory.length >= 2 && (() => {
+                const first = cycleDayHistory[0].weight;
+                const last = cycleDayHistory[cycleDayHistory.length - 1].weight;
+                const delta = last - first;
+                return (
+                  <div className="cycle-day-trend-delta">
+                    {delta > 0 ? '+' : ''}{delta.toFixed(1)} lbs over {cycleDayHistory.length} cycles
+                  </div>
+                );
+              })()}
             </div>
-          ) : (
-            <div className="cycle-day-compare">No data for day {cycleDay} last cycle</div>
           )}
         </div>
       )}
