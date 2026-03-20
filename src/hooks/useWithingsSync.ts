@@ -39,6 +39,7 @@ export function useWithingsSync(): SyncResult {
 
       if (res.status === 401) {
         setConnected(false);
+        setError('Session expired — reconnect your scale in Settings.');
         return;
       }
 

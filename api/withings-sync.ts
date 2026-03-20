@@ -30,6 +30,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Sync failed'
+    // If refresh token is invalid, return 401 so client knows to reconnect
+    if (message.includes('invalid refresh_token') || message.includes('status 401') || message.includes('status 503')) {
+      return res.status(401).json({ error: 'Session expired — please reconnect your scale in Settings.' })
+    }
     return res.status(500).json({ error: message })
   }
 }
